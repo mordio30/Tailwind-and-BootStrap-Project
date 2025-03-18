@@ -1,12 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Outlet } from 'react-router-dom';
+import NavBar from './components/NavBar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 function App() {
+  const [favorites, setFavorites] = useState([]);
   const [usrInput, setUsrInput] = useState('');
   const [selectedHero, setSelectedHero] = useState(null);
+
+  const isFavorite = (hero) => favorites.some(fav => fav.id === hero.id);
+
+  const addFavorite = (hero) => {
+    if (favorites.length >= 4) {
+      alert("You can only have 4 favorites");
+      return;
+    }
+    setFavorites([...favorites, hero]);
+  };
+
+  const rmFavorite = (hero) => {
+    setFavorites(favorites.filter(fav => fav.id !== hero.id));
+  };
 
   const getHeroInfo = async (e) => {
     e.preventDefault();
@@ -19,9 +37,14 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    console.log(favorites);
+  }, [favorites]);
+
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Search for a Superhero</h1>
+    <>
+      <NavBar />
+      <h1>Superhero API</h1>
       
       <form onSubmit={getHeroInfo} className="d-flex justify-content-center mb-4">
         <input 
@@ -50,10 +73,17 @@ function App() {
               <li><strong>Power:</strong> {selectedHero.powerstats.power}</li>
               <li><strong>Combat:</strong> {selectedHero.powerstats.combat}</li>
             </ul>
+            {isFavorite(selectedHero) ? (
+              <button onClick={() => rmFavorite(selectedHero)} className="btn btn-danger">Remove from Favorites</button>
+            ) : (
+              <button onClick={() => addFavorite(selectedHero)} className="btn btn-success">Add to Favorites</button>
+            )}
           </div>
         </div>
       )}
-    </div>
+
+      <Outlet context={{ favorites, isFavorite, addFavorite, rmFavorite }} />
+    </>
   );
 }
 
